@@ -14,4 +14,4 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface AutoLog {}
+public @interface MethodParamLog {}

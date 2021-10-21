@@ -20,9 +20,9 @@ import com.fengyue95.autolog.cache.LoggerCache;
  */
 @Aspect
 @Component
-public class AutoLogAspect {
+public class MethodParamLogAspect {
 
-    @Pointcut("@annotation(com.fengyue95.autolog.annotation.AutoLog)")
+    @Pointcut("@annotation(com.fengyue95.autolog.annotation.MethodParamLog)")
     public void log() {
     }
 
