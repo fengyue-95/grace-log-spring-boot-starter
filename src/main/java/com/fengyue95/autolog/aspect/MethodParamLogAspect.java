@@ -35,21 +35,20 @@ public class MethodParamLogAspect {
         Method method = signature.getMethod();
 
         Logger logger = LoggerCache.getLogger(className);
-        logger.info("autologaspect==========>>>>>>>>>className:{} method:{},方法执行", className, method.getName());
+        logger.info("MethodParamLog.className:{} method:{},方法执行", className, method.getName());
 
         Object[] args = joinPoint.getArgs();
-        logger.info("autologaspect==========>>>>>>>>>params:{}", JSON.toJSONString(args));
+        logger.info("MethodParamLog.className:{}, params:{}", className, JSON.toJSONString(args));
         // 执行方法获取返回值
         Object proceed = null;
         try {
             proceed = joinPoint.proceed();
         } catch (Exception e) {
             // 如果捕获到异常则打印日志并继续抛出,让业务感知异常的存在，不能把异常吞了
-            logger.warn("autologaspect==========>>>>>>>>>classname:{},exception:{}", e.getClass().getName(),
-                        e.getMessage());
+            logger.warn("MethodParamLog.classname:{},exception:{}", e.getClass().getName(), e.getMessage());
             throw e;
         }
         // 记录日志
-        logger.info("autologaspect==========>>>>>>>>>return:{}", JSON.toJSONString(proceed));
+        logger.info("MethodParamLog.classname:{},return:{}", className, JSON.toJSONString(proceed));
     }
 }
