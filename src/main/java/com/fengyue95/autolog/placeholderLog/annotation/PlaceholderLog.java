@@ -1,4 +1,4 @@
-package com.fengyue95.autolog.annotation;
+package com.fengyue95.autolog.placeholderLog.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -8,12 +8,17 @@ import java.lang.annotation.Target;
 
 /**
  * @author fengyue
- * @date 2021/5/21
+ * @date 2021/10/25
  */
-
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface MethodParamLog {
+public @interface PlaceholderLog {
+
+    /**
+     * 输出日志
+     * @return
+     */
+    String content() default "";
 
 }

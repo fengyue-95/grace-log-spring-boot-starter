@@ -1,4 +1,4 @@
-package com.fengyue95.autolog.aspect;
+package com.fengyue95.autolog.methodParamLog.aspect;
 
 import java.lang.reflect.Method;
 
@@ -12,7 +12,8 @@ import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSON;
 
-import com.fengyue95.autolog.cache.LoggerCache;
+import com.fengyue95.autolog.methodParamLog.cache.LoggerCache;
+import org.springframework.util.StopWatch;
 
 /**
  * @author fengyue
@@ -22,7 +23,7 @@ import com.fengyue95.autolog.cache.LoggerCache;
 @Component
 public class MethodParamLogAspect {
 
-    @Pointcut("@annotation(com.fengyue95.autolog.annotation.MethodParamLog)")
+    @Pointcut("@annotation(com.fengyue95.autolog.methodParamLog.annotation.MethodParamLog)")
     public void log() {
     }
 
@@ -41,14 +42,18 @@ public class MethodParamLogAspect {
         logger.info("MethodParamLog.className:{}, params:{}", className, JSON.toJSONString(args));
         // 执行方法获取返回值
         Object proceed = null;
+        StopWatch sw = new StopWatch();
         try {
+            sw.start();
             proceed = joinPoint.proceed();
+            sw.stop();
         } catch (Exception e) {
-            // 如果捕获到异常则打印日志并继续抛出,让业务感知异常的存在，不能把异常吞了
-            logger.warn("MethodParamLog.classname:{},exception:{}", e.getClass().getName(), e.getMessage());
-            throw e;
+            // 如果捕获到异常则打印日志并继续抛出,让业务感知异常的存在，把异常吞了
+            logger.warn("MethodParamLog.classname:{},exception:{}", e.getClass().getName(), e);
         }
         // 记录日志
         logger.info("MethodParamLog.classname:{},return:{}", className, JSON.toJSONString(proceed));
+        logger.info("MethodParamLog.classname:{},totalTime:{}", className, sw.getTotalTimeMillis()+"ms");
+
     }
 }

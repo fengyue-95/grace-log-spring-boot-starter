@@ -1,4 +1,4 @@
-package com.fengyue95.autolog.cache;
+package com.fengyue95.autolog.methodParamLog.cache;
 
 import java.util.HashMap;
 import java.util.Map;
