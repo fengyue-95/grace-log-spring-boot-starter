@@ -1,7 +1,5 @@
 package com.fengyue95.autolog.context;
 
-import org.springframework.stereotype.Component;
-
 /**
  * @author fengyue
  * @date 2021/11/4

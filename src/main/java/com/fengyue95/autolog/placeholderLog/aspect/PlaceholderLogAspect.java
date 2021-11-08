@@ -59,7 +59,7 @@ public class PlaceholderLogAspect {
         // 根据spel表达式获取值
         Expression expression = parser.parseExpression(content, new TemplateParserContext());
         Object key = expression.getValue(context);
-        logger.info("PlaceholderLogAspect:{}", key);
+        logger.info("className:{},{}", className,key);
         joinPoint.proceed();
     }
 

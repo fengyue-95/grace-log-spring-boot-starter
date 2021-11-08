@@ -1,9 +1,6 @@
 package com.fengyue95.autolog.util;
 
-import java.util.HashMap;
-
 import com.fengyue95.autolog.dto.Person;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.common.TemplateParserContext;

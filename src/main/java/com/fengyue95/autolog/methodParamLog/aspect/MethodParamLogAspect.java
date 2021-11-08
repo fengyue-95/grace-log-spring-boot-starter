@@ -36,10 +36,10 @@ public class MethodParamLogAspect {
         Method method = signature.getMethod();
 
         Logger logger = LoggerCache.getLogger(className);
-        logger.info("MethodParamLog.className:{} method:{},方法执行", className, method.getName());
+        logger.info("className:{} method:{},方法执行", className, method.getName());
 
         Object[] args = joinPoint.getArgs();
-        logger.info("MethodParamLog.className:{}, params:{}", className, JSON.toJSONString(args));
+        logger.info("className:{}, params:{}", className, JSON.toJSONString(args));
         // 执行方法获取返回值
         Object proceed = null;
         StopWatch sw = new StopWatch();
@@ -49,11 +49,11 @@ public class MethodParamLogAspect {
             sw.stop();
         } catch (Exception e) {
             // 如果捕获到异常则打印日志并继续抛出,让业务感知异常的存在，把异常吞了
-            logger.warn("MethodParamLog.classname:{},exception:{}", e.getClass().getName(), e);
+            logger.warn("classname:{},exception:{}", e.getClass().getName(), e);
         }
         // 记录日志
-        logger.info("MethodParamLog.classname:{},return:{}", className, JSON.toJSONString(proceed));
-        logger.info("MethodParamLog.classname:{},totalTime:{}", className, sw.getTotalTimeMillis()+"ms");
+        logger.info("classname:{},return:{}", className, JSON.toJSONString(proceed));
+        logger.info("classname:{},totalTime:{}", className, sw.getTotalTimeMillis()+"ms");
 
     }
 }
