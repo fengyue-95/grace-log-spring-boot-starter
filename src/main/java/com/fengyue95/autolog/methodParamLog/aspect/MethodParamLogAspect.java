@@ -50,6 +50,7 @@ public class MethodParamLogAspect {
         } catch (Exception e) {
             // 如果捕获到异常则打印日志并继续抛出,让业务感知异常的存在，把异常吞了
             logger.warn("classname:{},exception:{}", e.getClass().getName(), e);
+            throw e;
         }
         // 记录日志
         logger.info("classname:{},return:{}", className, JSON.toJSONString(proceed));
