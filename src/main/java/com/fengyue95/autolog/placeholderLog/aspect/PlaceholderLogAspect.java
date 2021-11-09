@@ -1,6 +1,7 @@
 package com.fengyue95.autolog.placeholderLog.aspect;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 import com.fengyue95.autolog.methodParamLog.cache.LoggerCache;
 import com.fengyue95.autolog.placeholderLog.annotation.PlaceholderLog;
@@ -49,22 +50,23 @@ public class PlaceholderLogAspect {
         EvaluationContext context = new StandardEvaluationContext();
         PlaceholderLog annotation = method.getAnnotation(PlaceholderLog.class);
         String content = annotation.content();
-
-        // 解析入参
-        bindMethodParam(method, joinPoint.getArgs(), context);
-
+        Object[] args = joinPoint.getArgs();
         Class clazz = annotation.currentUser();
-        bindCurrentUser(clazz, context);
+        if (Objects.nonNull(clazz) || args.length != 0) {
+            // 解析入参
+            bindMethodParam(method, args, context);
+            bindCurrentUser(clazz, context);
+            // 根据spel表达式获取值
+            Expression expression = parser.parseExpression(content, new TemplateParserContext());
+            Object key = expression.getValue(context);
+            logger.info("className:{},{}", className, key);
+        }
 
-        // 根据spel表达式获取值
-        Expression expression = parser.parseExpression(content, new TemplateParserContext());
-        Object key = expression.getValue(context);
-        logger.info("className:{},{}", className,key);
         joinPoint.proceed();
     }
 
     /**
-     * 将方法的参数名和参数值绑定
+     * 将方法的参数名和参数值绑定 方法参数解析
      *
      * @param method 方法，根据方法获取参数名
      * @param args 方法的参数值
@@ -73,6 +75,9 @@ public class PlaceholderLogAspect {
     private void bindMethodParam(Method method, Object[] args, EvaluationContext context) {
         // 获取方法的参数名
         String[] params = discoverer.getParameterNames(method);
+        if (params.length == 0) {
+            return;/**/
+        }
         // 将参数名与参数值对应起来
         for (int len = 0; len < args.length; len++) {
             context.setVariable(params[len], args[len]);
@@ -80,12 +85,15 @@ public class PlaceholderLogAspect {
     }
 
     /**
-     * 将方法的参数名和参数值绑定
+     * 将方法的参数名和参数值绑定 指定类解析
      *
      * @param clazz 方法，根据方法获取参数名
      * @return
      */
     private void bindCurrentUser(Class clazz, EvaluationContext context) {
+        if (Objects.isNull(clazz)) {
+            return;
+        }
         // 获取传入的上下文对象
         Object bean = SpringUtil.getBean(clazz);
         String[] split = clazz.getName().split("\\.");
@@ -93,6 +101,5 @@ public class PlaceholderLogAspect {
         String name = application.substring(0, 1).toLowerCase() + application.substring(1);
         // 将参数名与参数值对应起来
         context.setVariable(name, bean);
-
     }
 }
