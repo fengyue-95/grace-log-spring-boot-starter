@@ -48,7 +48,7 @@ public class MethodParamLogAspect {
             proceed = joinPoint.proceed();
             sw.stop();
         } catch (Exception e) {
-            // 如果捕获到异常则打印日志并继续抛出,让业务感知异常的存在，把异常吞了
+            // 如果捕获到异常则打印日志并继续抛出,让业务感知异常的存在
             logger.warn("classname:{},exception:{}", e.getClass().getName(), e);
             throw e;
         }
