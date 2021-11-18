@@ -7,6 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ *
  * @author fengyue
  * @date 2021/5/21
  */
@@ -16,4 +17,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface MethodParamLog {
 
+    boolean countExecuteTime() default false;
 }

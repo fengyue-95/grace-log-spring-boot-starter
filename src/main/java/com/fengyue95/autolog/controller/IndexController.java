@@ -31,7 +31,8 @@ public class IndexController {
     @MethodParamLog
     // @PlaceholderLog(content = "我#{#person.name + '的年龄是:' + #person.age}", currentUser = ApplicationUserContext.class)
     // @PlaceholderLog(content = "当前用户:#{#applicationUserContext.username}", currentUser = ApplicationUserContext.class)
-    @PlaceholderLog(content = "当前用户:#{#applicationUserContext.username+ '我是：'+ #person.name + '的年龄是:' + #person.age}", currentUser = ApplicationUserContext.class)
+    @PlaceholderLog(content = "当前用户:#{#applicationUserContext.username+ '我是：'+ #person.name + '的年龄是:' + #person.age}",
+        currentUser = ApplicationUserContext.class)
     public String person(@RequestBody Person person) throws InterruptedException {
         TimeUnit.SECONDS.sleep(2L);
         return person.getName() + person.getAge() + "hahahh";

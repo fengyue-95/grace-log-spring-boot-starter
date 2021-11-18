@@ -12,6 +12,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
@@ -29,6 +30,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class PlaceholderLogAspect {
 
+    private static final Logger                             logger     = LoggerFactory.getLogger(PlaceholderLogAspect.class);
+
     private final ExpressionParser                          parser     = new SpelExpressionParser();
     private final LocalVariableTableParameterNameDiscoverer discoverer = new LocalVariableTableParameterNameDiscoverer();
 
@@ -38,30 +41,37 @@ public class PlaceholderLogAspect {
 
     @Around(value = "log()")
     public void logBefore(ProceedingJoinPoint joinPoint) throws Throwable {
-        // 获取注解所在的类名
-        String className = joinPoint.getTarget().getClass().getName();
-        Logger logger = LoggerCache.getLogger(className);
+        try {
+            // 获取注解所在的类名
+            String className = joinPoint.getTarget().getClass().getName();
+            Logger classlog = LoggerCache.getLogger(className);
 
-        // 获取注解所在的方法
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
+            // 获取注解所在的方法
+            MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+            Method method = signature.getMethod();
 
-        // 获取注解，解析注解content参数
-        EvaluationContext context = new StandardEvaluationContext();
-        PlaceholderLog annotation = method.getAnnotation(PlaceholderLog.class);
-        String content = annotation.content();
-        Object[] args = joinPoint.getArgs();
-        Class clazz = annotation.currentUser();
-        if (Objects.nonNull(clazz) || args.length != 0) {
-            // 解析入参
-            bindMethodParam(method, args, context);
-            bindCurrentUser(clazz, context);
+            // 获取注解，解析注解content参数
+            EvaluationContext context = new StandardEvaluationContext();
+            PlaceholderLog annotation = method.getAnnotation(PlaceholderLog.class);
+            String content = annotation.content();
+            Object[] args = joinPoint.getArgs();
+            Class clazz = annotation.currentUser();
+            if (args.length != 0) {
+                // 解析入参
+                bindMethodParam(method, args, context);
+            }
+            if (Objects.nonNull(clazz)) {
+                // 解析上下文对象
+                bindCurrentUser(clazz, context);
+            }
             // 根据spel表达式获取值
             Expression expression = parser.parseExpression(content, new TemplateParserContext());
             Object key = expression.getValue(context);
-            logger.info("className:{},{}", className, key);
+            classlog.info("className:{},{}", className, key);
+        } catch (Exception e) {
+            // 注解的异常不影响方法的执行
+            logger.warn("PlaceholderLogAspect execute error:", e);
         }
-
         joinPoint.proceed();
     }
 

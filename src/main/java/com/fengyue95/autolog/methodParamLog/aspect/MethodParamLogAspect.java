@@ -2,6 +2,8 @@ package com.fengyue95.autolog.methodParamLog.aspect;
 
 import java.lang.reflect.Method;
 
+import com.fengyue95.autolog.methodParamLog.annotation.MethodParamLog;
+import com.fengyue95.autolog.placeholderLog.annotation.PlaceholderLog;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -39,22 +41,30 @@ public class MethodParamLogAspect {
         logger.info("className:{} method:{},方法执行", className, method.getName());
 
         Object[] args = joinPoint.getArgs();
-        logger.info("className:{}, params:{}", className, JSON.toJSONString(args));
+        logger.info("className:{} method:{}, params:{}", className, method.getName(), JSON.toJSONString(args));
+
+        MethodParamLog annotation = method.getAnnotation(MethodParamLog.class);
+
+        boolean executeTime = annotation.countExecuteTime();
         // 执行方法获取返回值
-        Object proceed = null;
-        StopWatch sw = new StopWatch();
+        Object result = null;
         try {
-            sw.start();
-            proceed = joinPoint.proceed();
-            sw.stop();
+            if (executeTime) {
+                StopWatch sw = new StopWatch();
+                sw.start();
+                result = joinPoint.proceed();
+                sw.stop();
+                logger.info("classname:{},method:{},totalTime:{}", className, method.getName(),
+                            sw.getTotalTimeMillis() + "ms");
+            } else {
+                result = joinPoint.proceed();
+            }
         } catch (Exception e) {
             // 如果捕获到异常则打印日志并继续抛出,让业务感知异常的存在
-            logger.warn("classname:{},exception:{}", e.getClass().getName(), e);
+            logger.warn("classname:{},method:{},exception:{}", e.getClass().getName(), method.getName(), e);
             throw e;
         }
         // 记录日志
-        logger.info("classname:{},return:{}", className, JSON.toJSONString(proceed));
-        logger.info("classname:{},totalTime:{}", className, sw.getTotalTimeMillis()+"ms");
-
+        logger.info("classname:{},method:{},return:{}", className, method.getName(), JSON.toJSONString(result));
     }
 }
