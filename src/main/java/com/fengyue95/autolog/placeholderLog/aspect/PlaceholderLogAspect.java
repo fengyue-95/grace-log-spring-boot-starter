@@ -1,6 +1,9 @@
 package com.fengyue95.autolog.placeholderLog.aspect;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import com.fengyue95.autolog.methodParamLog.cache.LoggerCache;
@@ -30,14 +33,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class PlaceholderLogAspect {
 
-    private static final Logger                             logger     = LoggerFactory.getLogger(PlaceholderLogAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(PlaceholderLogAspect.class);
 
-    private final ExpressionParser                          parser     = new SpelExpressionParser();
-    private final LocalVariableTableParameterNameDiscoverer discoverer = new LocalVariableTableParameterNameDiscoverer();
+    private final ExpressionParser parser = new SpelExpressionParser();
+    private final LocalVariableTableParameterNameDiscoverer discoverer =
+        new LocalVariableTableParameterNameDiscoverer();
 
     @Pointcut("@annotation(com.fengyue95.autolog.placeholderLog.annotation.PlaceholderLog)")
-    public void log() {
-    }
+    public void log() {}
 
     @Around(value = "log()")
     public void logBefore(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -47,7 +50,7 @@ public class PlaceholderLogAspect {
             Logger classlog = LoggerCache.getLogger(className);
 
             // 获取注解所在的方法
-            MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+            MethodSignature signature = (MethodSignature)joinPoint.getSignature();
             Method method = signature.getMethod();
 
             // 获取注解，解析注解content参数
@@ -58,7 +61,7 @@ public class PlaceholderLogAspect {
             Class clazz = annotation.currentUser();
             if (args.length != 0) {
                 // 解析入参
-                bindMethodParam(method, args, context);
+                bindMethodParam(args, context);
             }
             if (Objects.nonNull(clazz)) {
                 // 解析上下文对象
@@ -78,26 +81,45 @@ public class PlaceholderLogAspect {
     /**
      * 将方法的参数名和参数值绑定 方法参数解析
      *
-     * @param method 方法，根据方法获取参数名
-     * @param args 方法的参数值
+     * 方法，根据方法获取参数名
+     * 
+     * @param args
+     *            方法的参数值
      * @return
      */
-    private void bindMethodParam(Method method, Object[] args, EvaluationContext context) {
+    private void bindMethodParam(Object[] args, EvaluationContext context) throws IllegalAccessException {
         // 获取方法的参数名
-        String[] params = discoverer.getParameterNames(method);
-        if (params.length == 0) {
-            return;/**/
-        }
+        HashMap<String, Map<String, Object>> params = new HashMap<>();
+
         // 将参数名与参数值对应起来
         for (int len = 0; len < args.length; len++) {
-            context.setVariable(params[len], args[len]);
+            Object object = args[len];
+            // 转换成map<map>形式
+
+            Class<?> clazz = object.getClass();
+            if (isBaseClass(clazz)) {
+                context.setVariable("p" + len, object);
+                continue;
+            }
+
+            HashMap<String, Object> paramKV = new HashMap<>();
+            for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
+                Field[] field = clazz.getDeclaredFields();
+                for (Field f : field) {
+                    f.setAccessible(true);
+                    paramKV.put(f.getName(), f.get(object));
+                }
+            }
+            context.setVariable("p" + len, paramKV);
         }
+
     }
 
     /**
      * 将方法的参数名和参数值绑定 指定类解析
      *
-     * @param clazz 方法，根据方法获取参数名
+     * @param clazz
+     *            方法，根据方法获取参数名
      * @return
      */
     private void bindCurrentUser(Class clazz, EvaluationContext context) {
@@ -111,5 +133,47 @@ public class PlaceholderLogAspect {
         String name = application.substring(0, 1).toLowerCase() + application.substring(1);
         // 将参数名与参数值对应起来
         context.setVariable(name, bean);
+    }
+
+    public static void main(String[] args) throws IllegalAccessException {
+        // User user = new User("zhangsan", 1);
+        // user.setAddress("dizhi");
+
+        String user = "123";
+
+        // Class<?> clazz = user.getClass();
+        // for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
+        // Field[] field = clazz.getDeclaredFields();
+        // for (Field f : field) {
+        // f.setAccessible(true);
+        // System.out.println("属性：" + f.getName() + " 值：" + f.get(user).toString());
+        // }
+        // }
+
+        System.out.println(isWrapClass(user.getClass()));
+    }
+
+    /**
+     * 判断是否是基本类型/包装类型
+     * 
+     * @param clazz
+     * @return
+     */
+    public boolean isBaseClass(Class clazz) {
+        return clazz.isPrimitive() || isWrapClass(clazz) || clazz.getName().equals("java.lang.String");
+    }
+
+    /**
+     * 判断是否为基本类型的包装类
+     * 
+     * @param clz
+     * @return
+     */
+    public static boolean isWrapClass(Class clz) {
+        try {
+            return ((Class)clz.getField("TYPE").get(null)).isPrimitive();
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

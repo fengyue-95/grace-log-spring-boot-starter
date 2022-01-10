@@ -1,23 +1,22 @@
 package com.fengyue95.autolog.dto;
 
 import lombok.Data;
-import lombok.Getter;
 
 /**
  * @author fengyue
- * @date 2021/11/8
+ * @date 2022/1/10
  */
 @Data
-public class Person {
-
+public class User extends Father{
     private String name;
 
     private Integer age;
 
-    public Person(String name, Integer age) {
+    public User(String name, Integer age) {
         this.name = name;
         this.age = age;
     }
+
 
 
 }
